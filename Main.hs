@@ -2,7 +2,7 @@ module Main where
 import System.Environment
 import System.Console.GetOpt
 import System.IO (FilePath)
-import System.Directory (getDirectoryContents)
+import System.Directory (getDirectoryContents,canonicalizePath)
 
 import Data.List (intersperse)
 import Data.Either (rights)
@@ -25,8 +25,8 @@ optDescriptions = [	Option ['i'] ["id"] (ReqArg NameToId "NAME") "Lookup id of g
 usage = "Usage: steambrowser [OPTION...] directories..."
 helpText = "steambrowser is a tool for browsing installed steam apps and their properties.\nThe usage is \n\n" 
 		++ usage
-		++ "\n\n where steambrowser will read all *.acf files to form its searchable records of installed games.\n"
-		++ "Typically installed appmanifests will be in \"../SteamApps/\", howevre the precise location of your SteamApps folder may vary. It can usually be found via google without much hassle, if that turns out to not hold true and people desire I will list them here in the future."
+		++ "\n\nwhere steambrowser will read all *.acf files to form its searchable records of installed games.\n\n"
+		++ "Typically installed appmanifests will be in \"../SteamApps/\", howevre the precise location of your SteamApps folder may vary. It can usually be found via google without much hassle, if that turns out to not hold true and people desire I will list them here in the future.\n\n"
 help :: String 
 help = helpText ++ usageInfo usage optDescriptions
 
@@ -39,7 +39,7 @@ getApps :: FilePath -> IO [AppState]
 getApps fp = do
 	dirPaths <- getDirectoryContents fp
 	let appPaths = filter isAppPath dirPaths
-	appManifests <- sequence . map readFile $ map (fp++) appPaths
+	appManifests <- sequence . map readFile $ map ((fp++"/")++) appPaths
 	return . rights $ map (parseString defaultAppState) appManifests
 
 isAppPath :: FilePath -> Bool
@@ -54,11 +54,11 @@ processFlag apps (NameToId aName) =
 processFlag apps ListIds = 
 	concat . intersperse "\n" . map (show . appId) $ apps
 processFlag apps ListNames = 
-	concat . intersperse "\n" . map (show . name) $ apps
+	concat . intersperse "\n" . map name $ apps
 
 main :: IO () 
 main = do
 	args <- getArgs
 	(options,filepaths) <- getOptions args
-	apps <- fmap concat . sequence . map getApps $ filepaths
+	apps <- fmap concat . sequence . map ((=<<) getApps . canonicalizePath) $ filepaths
 	putStrLn . concat . intersperse "\n" $ map (processFlag apps) options
