@@ -10,7 +10,7 @@ If it is desired and people want it, support for other app properties can be add
 eg.
 
 ```bash
-steambrowser --list-names ~/.steam/steam/SteamApps #Will list installed game names seperated by newlines
+steambrowser --list-names ~/.steam/steam/SteamApps # Will list installed game names seperated by newlines
 steambrowser -n 250900 ~/.steam/steam/SteamApps # Will tell you the name of the game with ID 250900
 steambrowser -i "The Binding of Isaac: Rebirth" ~/.steam/steam/SteamApps # Will tell you the id of the game
 ```
